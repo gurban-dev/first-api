@@ -1,0 +1,30 @@
+# Virtual environment.
+.first-api-venv/
+
+# Python cache files.
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables and secrets.
+.env
+.env.*
+!.env.example
+
+# Distribution and build artifacts.
+build/
+dist/
+*.egg-info/
+
+# Test and coverage artifacts.
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE and editor settings.
+.vscode/
+.idea/
+
+# Operating system files.
+.DS_Store
+Thumbs.db
