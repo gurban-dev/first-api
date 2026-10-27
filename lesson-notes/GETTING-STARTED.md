@@ -4,7 +4,7 @@ A backend framework helps you build the server-side of an application. This incl
 
 An API or Application Programming Interface is a defined way for one piece of software to communicate with another. A web API lets a client send requests to a server and receive data in return. Think of this as the intermediary between the client and the server.
 
-An endpoint is a specific URL or web address where an API can be accessed by a client to retrieve data or perform a specific action.
+An API endpoint is a specific URL or web address where an API receives requests and sends responses.
 
 A client is a program that sends a request to another program to obtain information or perform an action. A web browser, mobile app or even another backend service can be a client.
 
@@ -19,6 +19,14 @@ Create a virtual environment folder:
 python -m venv .first-api-venv
 
 .venv will be the name of the virtual environment folder.
+
+On Windows, the virtual environment folder will have a Scripts
+subdirectory whereas on Linux, it'll contain a subdirectory
+called bin instead.
+
+View both visible and hidden items:
+
+Get-ChildItem -Force
 
 Activate the virtual environment:
 
@@ -49,3 +57,9 @@ If the requirements.txt file is empty, running the above command will not instal
 To start the local development server:
 
 fastapi dev main.py
+
+The link for the local developer server:
+http://127.0.0.1:8000
+
+The server is listening for incoming HTTP requests on port
+number 8000.
