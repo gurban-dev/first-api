@@ -40,7 +40,7 @@ def greet_person(name: str):
 # example, but any number that is passed as a path parameter.
 
 @app.get("/square/{num}")
-def greet_person(num: int):
+def calculate_square(num: int):
     # FastAPI extracts num from the URL and converts it to an integer.
     # For example, a request to /square/5 sets num to 5.
     square = num**2
