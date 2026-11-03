@@ -18,7 +18,7 @@ Create a virtual environment folder:
 
 python -m venv .first-api-venv
 
-.venv will be the name of the virtual environment folder.
+.first-api-venv will be the name of the virtual environment folder.
 
 On Windows, the virtual environment folder will have a Scripts
 subdirectory whereas on Linux, it'll contain a subdirectory
