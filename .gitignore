@@ -28,3 +28,6 @@ htmlcov/
 # Operating system files.
 .DS_Store
 Thumbs.db
+
+# Database files
+books.db

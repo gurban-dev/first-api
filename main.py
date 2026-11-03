@@ -1,19 +1,47 @@
 import json
 import sqlite3
 
+from contextlib import asynccontextmanager
+
 # Importing the class named FastAPI this way we can create a
 # FastAPI application.
 from fastapi import FastAPI, Response
 from pydantic import BaseModel
 
+# A lifespan function is a special function in FastAPI that manages
+# the entire lifecycle of the application. It defines exactly what
+# must happen when the application starts up and when it shuts down.
+
+# An Asynchronous Context Manager is a tool that enforces a strict
+# three-step sequence:
+# 1. (Setup): Runs code before 'yield' (e.g., opens a database
+#             connection).
+
+# 2. (Pause): Pauses at 'yield' and hands control to the app to
+#             handle requests.
+
+# 3. (Teardown): Automatically runs code after 'yield' when the
+#                server turns off (e.g., closes the database
+#                connection), guaranteeing cleanup even if the app
+#                crashes.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # This runs exactly once when the server starts up.
+    initialize_database()
+
+    yield
+
+    # Any code written here runs when the server completely
+    # shuts down.
+
 # This creates an instance/object of the FastAPI class.
 
 # Create the application.
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # Register an endpoint.
 
-# @ indicates that that line 17 is a decorator.
+# @ indicates that that line 21 is a decorator.
 # Tells FastAPI to call the say_hello() function when a client sends
 # GET request to /hello.
 
@@ -80,6 +108,19 @@ def get_connection():
 
     # By writing sqlite3.Row, the data is being tansformed
     # into a hybrid that behaves like a tuple and a dictionary.
+
+    # Without sqlite3.Row, you access the data by only using
+    # numerical indexes:
+    # print(row[0])
+    # print(row[1])
+    # print(row[2])
+
+    # With sqlite3.Row, you can access the data by using both
+    # numerical indexes and column names:
+    # print(row["id"])
+    # print(row["title"])
+    # print(row["author"])
+
     connection_obj.row_factory = sqlite3.Row
 
     return connection_obj
@@ -90,7 +131,7 @@ def initialize_database():
 
     # Create the database if it does not already exist.
 
-    # SIN (social insurance number) is an example of a primary
+    # A SIN (social insurance number) is an example of a primary
     # key because it can be used to uniquely identify an individual.
     connection.execute("""
         CREATE TABLE IF NOT EXISTS books (
@@ -103,7 +144,8 @@ def initialize_database():
     # Save the data to the database file.
     connection.commit()
 
-    # Disconnect the program from the database file.
+    # Disconnect to release the file lock; when a connection is opened, the file 
+    # is locked, and leaving it open will cause "database is locked" errors later.
     connection.close()
 
 initialize_database()
@@ -116,12 +158,12 @@ initialize_database()
 # Without BaseModel, a standard Python class is not capable of
 # identifying invalid data.
 
-# BaseModel takes JSON text and makes sure that it matches the
-# predefined structure.
+# FastAPI converts the JSON text into a Python dictionary, and 
+# BaseModel ensures that it matches the predefined structure.
 
-# The predefined structure requires that two pieces of information
-# are provided, the incoming data must use exact lowercase keys
-# "title" and "author" and must be strings.
+# The predefined structure requires two incoming pieces of data
+# to use the exact lowercase keys "title" and "author", and both
+# values must be strings.
 class BookCreate(BaseModel):
     title: str
     author: str
@@ -131,11 +173,6 @@ class BookCreate(BaseModel):
 # book: BookCreate
 @app.post("/create-book")
 def create_book(book: BookCreate):
-    book = BookCreate(
-        title="The Hobbit",
-        author="J.R.R. Tolkien"
-    )
-
     # Open a connection to the database file.
     connection = get_connection()
 
@@ -167,7 +204,7 @@ def create_book(book: BookCreate):
     connection.commit()
 
     # Get the ID that SQLite automatically created on its own
-    # by invoking the lastrowid property.
+    # by accessing the lastrowid property.
     book_id = cursor.lastrowid
 
     connection.close()
