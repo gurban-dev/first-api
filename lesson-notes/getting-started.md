@@ -69,6 +69,9 @@ A `requirements.txt` file is a plain-text file used in Python projects to list a
   ```powershell
   pip freeze > requirements.txt
   ```
+
+  The truncation operator (>) wipes the target file clean to prepare it for incoming data.
+
 * **Reproduce the environment** easily on another system using a single command:
   ```powershell
   pip install -r requirements.txt
