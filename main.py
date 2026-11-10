@@ -19,7 +19,7 @@ from pathlib import Path
 # codes and messages.
 
 # status provides readable names for HTTP status codes.
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, Response, status
 
 # StaticFiles serves CSS, JavaScript, images, and other static files.
 # "Serving" means delivering these pre-made resources (stylesheets,
@@ -153,13 +153,18 @@ def add_book(request: Request):
 
 # Register an endpoint.
 
-# @ indicates that that line 21 is a decorator.
+# @ indicates that line 161 is a decorator.
 # Tells FastAPI to call the say_hello() function when a client sends
 # GET request to /hello.
 
 # A GET request is sent to retrieve information.
 @app.get("/hello")
 def say_hello():
+    # In Python, a dictionary is being returned.
+
+    # When it reaches the user's web browser, it becomes a JSON
+    # string (raw text):
+    # '{"message": "Hello, world!"}'
     return {"message": "Hello, world!"}
 
 # The say_hello() function contains the logic for the endpoint.
@@ -334,3 +339,26 @@ def create_book(book: BookCreate):
         "title": book.title,
         "author": book.author
     }
+
+@app.get("/get-books")
+def get_all_books():
+    # Establish a database connection.
+    connection = get_connection()
+
+    # Execute the SQL query and get back a sqlite3.Cursor object
+    # containing the results.
+    cursor = connection.execute("SELECT * FROM books")
+
+    # Retrieve all rows from the sqlite3.Cursor object and store
+    # them in a list.
+    books = cursor.fetchall()
+
+    # Close the database connection.
+    connection.close()
+
+    books_list = []
+
+    for book in books:
+        books_list.append(dict(book))
+
+    return books_list
