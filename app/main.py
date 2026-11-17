@@ -66,10 +66,16 @@ async def lifespan(app: FastAPI):
     # This runs exactly once when the server starts up.
     initialize_database()
 
+    # yield temporarily pauses the execution of this function.
+    # Even after this function pauses, the FastAPI continues
+    # the startup process.
     yield
 
     # Any code written here runs when the server completely
     # shuts down.
+
+    # This function is aware of when the FastAPI server is terminated
+    # because of the decorator @asynccontextmanager.
 
 # This creates an instance/object of the FastAPI class.
 

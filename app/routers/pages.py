@@ -5,8 +5,10 @@ from fastapi import APIRouter, Request
 # See lesson-notes/jinja2.md.
 from fastapi.templating import Jinja2Templates
 
+# This is for HTML page endpoints.
 
-BASE_DIR = Path(__file__).resolve().parent
+# - Is there a better way to do this?
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Create a Jinja2Templates instance that allows FastAPI to render
 # HTML files using the Jinja2 templating engine.
@@ -25,6 +27,15 @@ templates = Jinja2Templates(
 )
 
 router = APIRouter()
+
+
+@router.get("/get-books", include_in_schema=False)
+def books_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="books.html",
+        context={}
+    )
 
 
 # Register a GET endpoint at /add-book to display the book

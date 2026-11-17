@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.database import get_connection
 from app.schemas import BookCreate
 
+# This is for book-related endpoints.
 
 router = APIRouter()
 
@@ -55,7 +56,7 @@ def create_book(book: BookCreate):
         "author": book.author
     }
 
-@router.get("/get-books")
+@router.get("/api/books")
 def get_all_books():
     # Establish a database connection.
     connection = get_connection()
@@ -77,3 +78,12 @@ def get_all_books():
         books_list.append(dict(book))
 
     return books_list
+
+
+# 1. Client sends a PUT request
+
+# 2. FastAPI identifies the book by looking at the ID.
+
+# 3. The server executes the SQL UPDATE
+
+# 4. The server returns the updated book.

@@ -13,10 +13,12 @@ first-api/
 │       ├── pages.py           # Serves the add-book HTML page
 │       └── examples.py        # Small API examples: hello, greet, and square
 ├── templates/
-│   └── index.html             # Add-book page template
+│   ├── index.html             # Add-book page template
+│   └── books.html             # Book list and selected-book details page
 ├── static/
 │   ├── css/styles.css         # Page appearance
-│   └── js/app.js              # Form behavior and POST request to the API
+│   ├── js/app.js              # Form behavior and POST request to the API
+│   └── js/books.js            # Loads and displays books from the API
 ├── lesson-notes/              # Learning notes and exercises
 ├── requirements.in            # Top-level dependency input (currently empty)
 ├── requirements.txt           # Pinned Python packages
@@ -32,9 +34,9 @@ The `__init__.py` files in `app/` and `app/routers/` mark those directories as P
 3. The books router validates the request with `BookCreate` from `app/schemas.py`.
 4. The router uses functions in `app/database.py` to insert the book into SQLite and returns the created book as JSON.
 
-## How books are retrieved
+## How books are viewed
 
-The books router handles `GET /get-books`. It selects rows from the `books` table and returns them as JSON. A browser page can request that endpoint and use the response to display the books.
+The page router serves `templates/books.html` at `GET /get-books`. Its JavaScript requests `GET /api/books`, which the books router handles by selecting rows from the `books` table and returning them as JSON. Selecting a book displays its details; the update control is a disabled placeholder, and updating books is not implemented yet.
 
 ## Application startup
 
