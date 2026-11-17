@@ -23,6 +23,8 @@ first-api/
 └── .gitignore                 # Files and folders Git should ignore
 ```
 
+The `__init__.py` files in `app/` and `app/routers/` mark those directories as Python packages. This lets the project import modules from them using paths such as `app.database` and `app.routers.books`.
+
 ## How a book is added
 
 1. The browser displays `templates/index.html`, styled by `static/css/styles.css`.
