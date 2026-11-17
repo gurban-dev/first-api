@@ -5,12 +5,46 @@ const selectedBookTitle = document.getElementById("selected-book-title");
 const selectedBookAuthor = document.getElementById("selected-book-author");
 const selectedBookId = document.getElementById("selected-book-id");
 
+const editTitleInput = document.getElementById("edit-title");
+const editAuthorInput = document.getElementById("edit-author");
+const editBookForm = document.getElementById("edit-book-form");
+let selectedBook;
+
+// This file is where the frontend communicates with the backend.
+
 function selectBook(book) {
+    selectedBook = book;
     selectedBookTitle.textContent = book.title;
     selectedBookAuthor.textContent = `by ${book.author}`;
     selectedBookId.textContent = `Book ID: ${book.id}`;
+
+    editTitleInput.value = book.title;
+    editAuthorInput.value = book.author;
+
     bookDetails.hidden = false;
 }
+
+// Listen for the form's submit event and use an async function because
+// the function needs to wait for the server's response.
+editBookForm.addEventListener("submit", async (event) => {
+
+    // Prevent the browser from submitting the form normally and
+    // reloading the page.
+    event.preventDefault();
+
+    // Send a PUT request to the FastAPI server to update the
+    // selected book.
+
+    // await will pause execution until the server responds.
+    await fetch(`/books/${selectedBook.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            title: editTitleInput.value.trim(),
+            author: editAuthorInput.value.trim()
+        })
+    });
+});
 
 function displayBooks(books) {
     bookList.replaceChildren();

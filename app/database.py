@@ -58,6 +58,7 @@ def initialize_database():
     # Save the data to the database file.
     connection.commit()
 
-    # Disconnect to release the file lock; when a connection is opened, the file 
-    # is locked, and leaving it open will cause "database is locked" errors later.
+    # Disconnect to release the file lock; when a connection
+    # is opened, the file is locked, and leaving it open will
+    # cause "database is locked" errors later.
     connection.close()

@@ -1,12 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.database import get_connection
 from app.schemas import BookCreate
 
 # This is for book-related endpoints.
 
+# Create an APIRouter to group related endpoints together,
+# keeping the application organised across multiple files.
 router = APIRouter()
-
 
 # The following type annotation/hint forces the data to conform
 # to the BookCreate model:
@@ -79,11 +80,57 @@ def get_all_books():
 
     return books_list
 
-
-# 1. Client sends a PUT request
+# How the Client and Server Update a Book
+# 1. The client sends a PUT request
 
 # 2. FastAPI identifies the book by looking at the ID.
 
 # 3. The server executes the SQL UPDATE
 
 # 4. The server returns the updated book.
+@router.put("/books/{book_id}")
+def replace_book(book_id: int, book: BookCreate):
+    # cursor is an object that provides information about the
+    # operation that was performed.
+    connection = get_connection()
+
+    # UPDATE is an SQL command used to modify existing records
+    # in a database.
+
+    # SET specifies which columns we want to change and what
+    # their new values should be.
+
+    # The question mark (?) represents a parameter placeholder.
+    # The actual values are supplied in the tuple which is the
+    # second argument.
+
+    # Checks whether the SQL operation affected any rows in the
+    # database.
+    cursor = connection.execute(
+        """
+        UPDATE books
+        SET title = ?, author = ?
+        WHERE id = ?
+        """,
+        (book.title, book.author, book_id)
+    )
+
+    # The rowcount attribute reveals how many rows were affected
+    # by the SQL operation.
+    if cursor.rowcount == 0:
+        # Closes the connection between this Python program and
+        # thee SQLite database.
+        connection.close()
+
+        # Stop processing the current request and return an HTTP
+        # error response to the client.
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "id": book_id,
+        "title": book.title,
+        "author": book.author
+    }

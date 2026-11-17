@@ -43,12 +43,32 @@
                 <h2 id="selected-book-title"></h2>
                 <p id="selected-book-author" class="subtitle"></p>
                 <p id="selected-book-id" class="book-id"></p>
-                <button type="button" disabled aria-describedby="update-note">
-                    Update book (coming soon)
-                </button>
-                <p id="update-note" class="update-note">
-                    Book updates are not available yet.
-                </p>
+
+                <form id="edit-book-form">
+                    <div class="form-group">
+                        <label for="edit-title">Book title</label>
+                        <input
+                            type="text"
+                            id="edit-title"
+                            name="title"
+                            maxlength="200"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-author">Author</label>
+                        <input
+                            type="text"
+                            id="edit-author"
+                            name="author"
+                            maxlength="120"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit">Save changes</button>
+                </form>
             </section>
 
             <footer class="card-footer">

@@ -1,7 +1,4 @@
 import logging
-
-# closing() guarantees that database connections are closed,
-# including when an exception occurs.
 from contextlib import asynccontextmanager
 
 # The Path class is imported from Python's built-in pathlib module 
@@ -43,7 +40,7 @@ logging.basicConfig(level=logging.INFO)
 # references the module's name.
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent[1]
 
 # A lifespan function is a special function in FastAPI that manages
 # the entire lifecycle of the application. It defines exactly what
