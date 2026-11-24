@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 # parents[0] is routers/
 # parents[1] is app/
 # parents[2] is the project's first-api/ directory.
-BASE_DIR = Path(__file__).resolve().parent[2]
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 # Create a Jinja2Templates instance that allows FastAPI to render
 # HTML files using the Jinja2 templating engine.
