@@ -120,17 +120,25 @@ Notice that we aren't sending the author because we don't want to change it.
 
 HTML template where the user can make a partial update:
 
+# patch.html
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update a Book</title>
+    <title>Update Books</title>
 </head>
 <body>
 
-    <h1>Update a Book</h1>
+    <h1>Available Books</h1>
+
+    <ul id="book-list"></ul>
+
+    <h2>Update Selected Book</h2>
+
+    <p id="selected-book">No book selected.</p>
 
     <form id="update-book-form">
 
@@ -152,13 +160,52 @@ HTML template where the user can make a partial update:
     <pre id="response"></pre>
 
     <script>
+        const bookList = document.getElementById("book-list");
         const form = document.getElementById("update-book-form");
+        const selectedBook = document.getElementById("selected-book");
         const responseElement = document.getElementById("response");
 
+        let selectedBookId = null;
+
+        // Retrieve all books from the backend.
+        async function loadBooks() {
+            const response = await fetch("/books");
+            const books = await response.json();
+
+            bookList.innerHTML = "";
+
+            books.forEach(book => {
+                const listItem = document.createElement("li");
+                const button = document.createElement("button");
+
+                button.textContent = `${book.title} by ${book.author}`;
+
+                button.addEventListener("click", () => {
+                    selectedBookId = book.id;
+
+                    selectedBook.textContent =
+                        `Selected book: ${book.title} (ID: ${book.id})`;
+
+                    document.getElementById("title").value = "";
+                    document.getElementById("author").value = "";
+                    responseElement.textContent = "";
+                });
+
+                listItem.appendChild(button);
+                bookList.appendChild(listItem);
+            });
+        }
+
+        // Send a PATCH request for the selected book.
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            const bookId = document.getElementById("book-id").value;
+            if (selectedBookId === null) {
+                responseElement.textContent =
+                    "Please select a book first.";
+                return;
+            }
+
             const title = document.getElementById("title").value;
             const author = document.getElementById("author").value;
 
@@ -172,14 +219,23 @@ HTML template where the user can make a partial update:
                 updatedFields.author = author;
             }
 
+            if (Object.keys(updatedFields).length === 0) {
+                responseElement.textContent =
+                    "Please provide at least one field to update.";
+                return;
+            }
+
             try {
-                const response = await fetch(`/books/${bookId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(updatedFields)
-                });
+                const response = await fetch(
+                    `/books/${selectedBookId}`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(updatedFields)
+                    }
+                );
 
                 const data = await response.json();
 
@@ -189,10 +245,17 @@ HTML template where the user can make a partial update:
                     4
                 );
 
+                if (response.ok) {
+                    await loadBooks();
+                }
+
             } catch (error) {
                 responseElement.textContent = error.message;
             }
         });
+
+        // Load the books when the page opens.
+        loadBooks();
     </script>
 
 </body>

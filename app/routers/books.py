@@ -117,6 +117,9 @@ def replace_book(book_id: int, book: BookCreate):
 
     # The rowcount attribute reveals how many rows were affected
     # by the SQL operation.
+
+    # If cursor.rowcount is equal to zero, it means that no database
+    # rows were affected by the SQL query.
     if cursor.rowcount == 0:
         # Closes the connection between this Python program and
         # thee SQLite database.
