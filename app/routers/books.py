@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.database import get_connection
-from app.schemas import BookCreate
+from app.schemas import BookCreate, BookPatch
 
 # This is for book-related endpoints.
 
@@ -137,3 +137,41 @@ def replace_book(book_id: int, book: BookCreate):
         "title": book.title,
         "author": book.author
     }
+
+
+@router.patch("/books/{book_id}")
+def update_book(book_id: int, book: BookPatch):
+    updates = book.model_dump(exclude_unset=True)
+
+    if len(updates) != 1:
+        raise HTTPException(
+            status_code=422,
+            detail="Provide exactly one field: title or author"
+        )
+
+    field, value = next(iter(updates.items()))
+
+    if field not in {"title", "author"} or value is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Provide a non-null title or author"
+        )
+
+    connection = get_connection()
+    cursor = connection.execute(
+        f"UPDATE books SET {field} = ? WHERE id = ?",
+        (value, book_id)
+    )
+
+    if cursor.rowcount == 0:
+        connection.close()
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    connection.commit()
+    updated_book = connection.execute(
+        "SELECT id, title, author FROM books WHERE id = ?",
+        (book_id,)
+    ).fetchone()
+    connection.close()
+
+    return dict(updated_book)

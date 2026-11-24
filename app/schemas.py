@@ -30,3 +30,10 @@ class BookCreate(BaseModel):
     # while author allows 1 to 120 characters.
     title: str = Field(min_length=1, max_length=200)
     author: str = Field(min_length=1, max_length=120)
+
+
+class BookPatch(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    author: str | None = Field(default=None, min_length=1, max_length=120)

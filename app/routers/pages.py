@@ -62,3 +62,12 @@ def add_book(request: Request):
         # An empty dictionary {} means no additional data is needed.
         context={}
     )
+
+
+@router.get("/update-book", include_in_schema=False)
+def update_book(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="patch.html",
+        context={}
+    )
