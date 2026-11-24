@@ -27,6 +27,19 @@ Temporarily save uncommitted local changes to clear the working directory:
 git stash
 ```
 
+or
+
+Discard the local changes:
+```bash
+git reset --hard HEAD
+```
+
+Tracked files: Files that Git already knows about. Usually they were committed previously.
+
+HEAD: A reference to your current commit, meaning the lastest commit on your branch.
+
+--hard: Resets the working directory and staging area to match that latest commit.
+
 Fetch updates from the remote GitHub repository and merge them into the current branch:
 ```bash
 git pull

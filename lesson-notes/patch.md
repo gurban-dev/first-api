@@ -37,6 +37,7 @@ A Pydantic model is a Python class that defines the rules for valid data and che
 For instance, the BookCreate Pydantic model checks whether the title field contains at least 1 character and not more than 200 characters.
 
 class BookCreate(BaseModel):
+
     model_config = ConfigDict(str_strip_whitespace=True)
 
     title: str = Field(min_length=1, max_length=200)
@@ -46,6 +47,7 @@ class BookCreate(BaseModel):
 For a PATCH request, we'll create another model in schemas.py:
 
 class BookUpdate(BaseModel):
+
     model_config = ConfigDict(str_strip_whitespace=True)
 
     title: str | None = Field(default=None, max_length=200)
@@ -115,6 +117,87 @@ The request sends the following information:
 - **Request body:** `{"title": "The Pragmatic Programmer"}`
 
 Notice that we aren't sending the author because we don't want to change it.
+
+HTML template where the user can make a partial update:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update a Book</title>
+</head>
+<body>
+
+    <h1>Update a Book</h1>
+
+    <form id="update-book-form">
+
+        <label for="title">New Title:</label>
+        <input type="text" id="title" placeholder="Enter a new title">
+
+        <br><br>
+
+        <label for="author">New Author:</label>
+        <input type="text" id="author" placeholder="Enter a new author">
+
+        <br><br>
+
+        <button type="submit">Update Book</button>
+
+    </form>
+
+    <h2>Server Response</h2>
+    <pre id="response"></pre>
+
+    <script>
+        const form = document.getElementById("update-book-form");
+        const responseElement = document.getElementById("response");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const bookId = document.getElementById("book-id").value;
+            const title = document.getElementById("title").value;
+            const author = document.getElementById("author").value;
+
+            const updatedFields = {};
+
+            if (title.trim() !== "") {
+                updatedFields.title = title;
+            }
+
+            if (author.trim() !== "") {
+                updatedFields.author = author;
+            }
+
+            try {
+                const response = await fetch(`/books/${bookId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(updatedFields)
+                });
+
+                const data = await response.json();
+
+                responseElement.textContent = JSON.stringify(
+                    data,
+                    null,
+                    4
+                );
+
+            } catch (error) {
+                responseElement.textContent = error.message;
+            }
+        });
+    </script>
+
+</body>
+</html>
+```
 
 ---
 
