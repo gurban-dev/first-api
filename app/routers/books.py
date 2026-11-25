@@ -57,7 +57,7 @@ def create_book(book: BookCreate):
         "author": book.author
     }
 
-@router.get("/api/books")
+@router.get("/get-all-books")
 def get_all_books():
     # Establish a database connection.
     connection = get_connection()
@@ -88,7 +88,7 @@ def get_all_books():
 # 3. The server executes the SQL UPDATE
 
 # 4. The server returns the updated book.
-@router.put("/books/{book_id}")
+@router.put("/replace-book/{book_id}")
 def replace_book(book_id: int, book: BookCreate):
     # cursor is an object that provides information about the
     # operation that was performed.
@@ -139,7 +139,7 @@ def replace_book(book_id: int, book: BookCreate):
     }
 
 
-@router.patch("/books/{book_id}")
+@router.patch("/update-book/{book_id}")
 def update_book(book_id: int, book: BookPatch):
     updates = book.model_dump(exclude_unset=True)
 
