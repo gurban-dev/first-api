@@ -1,7 +1,5 @@
 # How deleting a book works
 
-This lesson follows one book from the moment the user clicks **Delete Book** to the SQL operation and the response in the browser. By the end, a student should be able to explain the request and implement the same flow for another resource.
-
 ## The flow at a glance
 
 ```text
@@ -154,7 +152,7 @@ connection.close()
 return {"id": book_id, "message": "Book deleted successfully"}
 ```
 
-Here is the complete endpoint for a student to study and then recreate:
+Here is the complete endpoint to recreate:
 
 ```python
 @router.delete("/delete-book/{book_id}")
@@ -243,18 +241,7 @@ The red button style in `static/css/styles.css` is optional; it does not perform
 }
 ```
 
-## 30-minute lesson plan
-
-| Time | Student activity |
-| --- | --- |
-| 0–4 min | Ask: what information must the server receive to delete exactly one book? Establish that it needs the book ID. |
-| 4–9 min | Trace `data-book-id`, `selectedBook`, and the delegated click handler. Have the student predict which branch runs when `data-action` is `delete`. |
-| 9–14 min | Read the `fetch` call. Identify the method, URL, path ID, and why there is no request body. Write the example request `DELETE /delete-book/12`. |
-| 14–20 min | Trace the FastAPI decorator, path parameter, SQL `WHERE` clause, row count, commit, and 404 case. Ask what would happen if the `WHERE` clause were missing. |
-| 20–25 min | Follow the response back to JavaScript: `response.ok`, JSON, removing the row, updating the count, and showing success or error. |
-| 25–30 min | Student implements the endpoint and client call from a small checklist below, then explains the whole trip in their own words. |
-
-## Student implementation checklist
+## Implementation checklist
 
 Try implementing this flow in a small practice route or another resource before copying the existing code. Check that your solution:
 
