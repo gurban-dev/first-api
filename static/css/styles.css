@@ -204,6 +204,43 @@ button:disabled {
     list-style: none;
 }
 
+.book-item {
+    display: grid;
+    gap: 8px;
+}
+
+.book-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.book-actions[hidden] {
+    display: none;
+}
+
+.book-actions button {
+    height: auto;
+    flex: 1;
+    margin: 0;
+    padding: 12px;
+    line-height: 1.5;
+}
+
+.book-actions button span,
+.book-details h2 span {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.delete-book-button {
+    background: #b42318;
+}
+
+.delete-book-button:hover:not(:disabled) {
+    background: #912018;
+}
+
 .book-list-item {
     height: auto;
     display: flex;

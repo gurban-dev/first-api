@@ -9,16 +9,15 @@ first-api/
 │   ├── database.py            # SQLite connection and books table setup
 │   ├── schemas.py             # Pydantic models used to validate book data
 │   └── routers/               # HTTP endpoints grouped by purpose
-│       ├── books.py           # Create a book and retrieve all books
-│       ├── pages.py           # Serves the add-book HTML page
+│       ├── books.py           # Create, retrieve, replace, and update books
+│       ├── pages.py           # Serves the server-rendered book library page
 │       └── examples.py        # Small API examples: hello, greet, and square
 ├── templates/
-│   ├── index.html             # Add-book page template
-│   └── books.html             # Book list and selected-book details page
+│   └── view-books.html        # Book list and POST/PUT/PATCH forms
 ├── static/
 │   ├── css/styles.css         # Page appearance
-│   ├── js/app.js              # Form behavior and POST request to the API
-│   └── js/books.js            # Loads and displays books from the API
+│   ├── js/app.js              # Add-book form and POST request to the API
+│   └── js/books.js            # Handles book selection and PUT/PATCH requests
 ├── lesson-notes/              # Learning notes and exercises
 ├── requirements.in            # Top-level dependency input (currently empty)
 ├── requirements.txt           # Pinned Python packages
@@ -29,14 +28,14 @@ The `__init__.py` files in `app/` and `app/routers/` mark those directories as P
 
 ## How a book is added
 
-1. The browser displays `templates/index.html`, styled by `static/css/styles.css`.
+1. The browser displays `templates/view-books.html`, styled by `static/css/styles.css`.
 2. `static/js/app.js` handles the form submission and sends a JSON `POST` request to `/create-book`.
 3. The books router validates the request with `BookCreate` from `app/schemas.py`.
 4. The router uses functions in `app/database.py` to insert the book into SQLite and returns the created book as JSON.
 
 ## How books are viewed
 
-The page router serves `templates/books.html` at `GET /get-books`. Its JavaScript requests `GET /api/books`, which the books router handles by selecting rows from the `books` table and returning them as JSON. Selecting a book displays its details; the update control is a disabled placeholder, and updating books is not implemented yet.
+The page router queries the books table and passes the results to `templates/view-books.html` at `GET /view-books`. Jinja renders the list into the page. The same page contains the add-book form and per-book PUT/PATCH controls. JavaScript sends POST, PUT, and PATCH requests to the books API; it does not fetch the book list separately.
 
 ## Application startup
 

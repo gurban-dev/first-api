@@ -1,101 +1,166 @@
 const bookList = document.getElementById("book-list");
-const libraryStatus = document.getElementById("library-status");
-const bookDetails = document.getElementById("book-details");
-const selectedBookTitle = document.getElementById("selected-book-title");
-const selectedBookAuthor = document.getElementById("selected-book-author");
-const selectedBookId = document.getElementById("selected-book-id");
+const replacePanel = document.getElementById("replace-panel");
+const patchPanel = document.getElementById("patch-panel");
+const replaceBookForm = document.getElementById("replace-book-form");
+const patchBookForm = document.getElementById("patch-book-form");
+const replaceTitleInput = document.getElementById("replace-title");
+const replaceAuthorInput = document.getElementById("replace-author");
+const patchField = document.getElementById("patch-field");
+const patchValueLabel = document.getElementById("patch-value-label");
+const patchValue = document.getElementById("patch-value");
+const updateStatus = document.getElementById("update-status");
+let selectedBook = null;
 
-const editTitleInput = document.getElementById("edit-title");
-const editAuthorInput = document.getElementById("edit-author");
-const editBookForm = document.getElementById("edit-book-form");
-let selectedBook;
-
-// This file is where the frontend communicates with the backend.
-
-function selectBook(book) {
-    selectedBook = book;
-    selectedBookTitle.textContent = book.title;
-    selectedBookAuthor.textContent = `by ${book.author}`;
-    selectedBookId.textContent = `Book ID: ${book.id}`;
-
-    editTitleInput.value = book.title;
-    editAuthorInput.value = book.author;
-
-    bookDetails.hidden = false;
+function hideEditPanels() {
+    replacePanel.hidden = true;
+    patchPanel.hidden = true;
 }
 
-// Listen for the form's submit event and use an async function because
-// the function needs to wait for the server's response.
-editBookForm.addEventListener("submit", async (event) => {
+function selectBook(button) {
+    selectedBook = {
+        id: Number(button.dataset.bookId),
+        title: button.dataset.title,
+        author: button.dataset.author
+    };
 
-    // Prevent the browser from submitting the form normally and
-    // reloading the page.
-    event.preventDefault();
-
-    // Send a PUT request to the FastAPI server to update the
-    // selected book.
-
-    // await will pause execution until the server responds.
-    await fetch(`/books/${selectedBook.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            title: editTitleInput.value.trim(),
-            author: editAuthorInput.value.trim()
-        })
+    document.querySelectorAll(".book-actions").forEach((actions) => {
+        actions.hidden = actions.parentElement !== button.closest(".book-item");
     });
-});
 
-function displayBooks(books) {
-    bookList.replaceChildren();
+    hideEditPanels();
+    updateStatus.textContent = `Selected "${selectedBook.title}".`;
+}
 
-    if (books.length === 0) {
-        libraryStatus.textContent = "There are no books in your collection yet.";
+bookList.addEventListener("click", (event) => {
+    const bookButton = event.target.closest("button[data-book-id]");
+
+    if (bookButton) {
+        selectBook(bookButton);
         return;
     }
 
-    libraryStatus.textContent = `${books.length} book${books.length === 1 ? "" : "s"} in your collection.`;
+    const actionButton = event.target.closest("button[data-action]");
 
-    for (const book of books) {
-        const item = document.createElement("li");
-        const button = document.createElement("button");
-        const title = document.createElement("span");
-        const author = document.createElement("span");
-
-        button.type = "button";
-        button.className = "book-list-item";
-        title.className = "book-list-title";
-        author.className = "book-list-author";
-        title.textContent = book.title;
-        author.textContent = book.author;
-
-        button.append(title, author);
-        button.addEventListener("click", () => selectBook(book));
-        item.append(button);
-        bookList.append(item);
+    if (!actionButton || !selectedBook) {
+        return;
     }
+
+    hideEditPanels();
+
+    if (actionButton.dataset.action === "put") {
+        document.getElementById("put-selected-book").textContent =
+            `Selected: ${selectedBook.title} (ID: ${selectedBook.id})`;
+        replaceTitleInput.value = selectedBook.title;
+        replaceAuthorInput.value = selectedBook.author;
+        replacePanel.hidden = false;
+    } else if (actionButton.dataset.action === "patch") {
+        document.getElementById("patch-selected-book").textContent =
+            `Selected: ${selectedBook.title} (ID: ${selectedBook.id})`;
+        patchField.value = "title";
+        updatePatchField();
+        patchPanel.hidden = false;
+    } else {
+        sendUpdate("DELETE", null);
+    }
+});
+function updatePatchField() {
+    const field = patchField.value;
+    const fieldLabel = field === "title" ? "title" : "author";
+
+    patchValueLabel.textContent = `New ${fieldLabel}`;
+    patchValue.maxLength = field === "title" ? 200 : 120;
+    patchValue.value = "";
+    patchValue.placeholder = `Enter a new ${fieldLabel}`;
 }
 
-async function loadBooks() {
+patchField.addEventListener("change", updatePatchField);
+
+async function sendUpdate(method, body) {
+    if (!selectedBook) {
+        updateStatus.textContent = "Select a book first.";
+        return;
+    }
+
+    const endpoint = method === "PUT"
+        ? "replace-book"
+        : method === "PATCH"
+            ? "update-book"
+            : "delete-book";
+
     try {
-        const response = await fetch("/api/books");
+        const options = { method };
+        if (body !== null) {
+            options.headers = { "Content-Type": "application/json" };
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(`/${endpoint}/${selectedBook.id}`, options);
+        const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(`The server returned an error (${response.status}).`);
+            const message = typeof data.detail === "string"
+                ? data.detail
+                : `Request failed (${response.status}).`;
+            throw new Error(message);
         }
 
-        const books = await response.json();
+        const bookButton = document.querySelector(
+            `button[data-book-id="${selectedBook.id}"]`
+        );
 
-        if (!Array.isArray(books)) {
-            throw new Error("The server returned an unexpected response.");
+        if (method === "DELETE") {
+            bookButton.closest(".book-item").remove();
+            const bookCount = document.getElementById("book-count");
+            const newCount = Number(bookCount.dataset.count) - 1;
+            bookCount.dataset.count = newCount;
+            bookCount.textContent = newCount === 0
+                ? "There are no books in your collection yet."
+                : `${newCount} book${newCount === 1 ? "" : "s"} in your collection.`;
+
+            if (newCount === 0) {
+                const emptyMessage = document.createElement("li");
+                emptyMessage.id = "empty-books-message";
+                emptyMessage.textContent = "There are no books in your collection yet.";
+                bookList.append(emptyMessage);
+            }
+
+            selectedBook = null;
+            hideEditPanels();
+            updateStatus.textContent = "Book deleted successfully.";
+            return;
         }
 
-        displayBooks(books);
+        selectedBook = data;
+        bookButton.dataset.title = data.title;
+        bookButton.dataset.author = data.author;
+        bookButton.querySelector(".book-list-title").textContent = data.title;
+        bookButton.querySelector(".book-list-author").textContent = data.author;
+        replaceTitleInput.value = data.title;
+        replaceAuthorInput.value = data.author;
+        updateStatus.textContent = `Book ${method} request succeeded.`;
     } catch (error) {
-        console.error("Error loading books:", error);
-        libraryStatus.textContent =
-            "Could not load your books. Please try again later.";
+        updateStatus.textContent = error.message;
     }
 }
 
-loadBooks();
+replaceBookForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    sendUpdate("PUT", {
+        title: replaceTitleInput.value.trim(),
+        author: replaceAuthorInput.value.trim()
+    });
+});
+
+patchBookForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const value = patchValue.value.trim();
+    if (!value) {
+        updateStatus.textContent = "Enter a new value for the selected field.";
+        return;
+    }
+
+    sendUpdate("PATCH", { [patchField.value]: value });
+});
+

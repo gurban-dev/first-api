@@ -5,6 +5,8 @@ from fastapi import APIRouter, Request
 # See lesson-notes/jinja2.md.
 from fastapi.templating import Jinja2Templates
 
+from app.database import get_connection
+
 # This is for HTML page endpoints.
 
 # parents[0] is routers/
@@ -31,43 +33,29 @@ templates = Jinja2Templates(
 router = APIRouter()
 
 
-@router.get("/get-books", include_in_schema=False)
-def books_page(request: Request):
+@router.get("/view-books", include_in_schema=False)
+def view_books(request: Request):
+    # Establish a database connection.
+    connection = get_connection()
+
+    # Execute the SQL query and get back a sqlite3.Cursor object
+    # containing the results.
+    cursor = connection.execute("SELECT * FROM books")
+
+    # Retrieve all rows from the sqlite3.Cursor object and store
+    # them in a list.
+    books = cursor.fetchall()
+
+    # Close the database connection.
+    connection.close()
+
+    all_books = []
+
+    for book in books:
+        all_books.append(dict(book))
+
     return templates.TemplateResponse(
         request=request,
-        name="books.html",
-        context={}
-    )
-
-
-# Register a GET endpoint at /add-book to display the book
-# creation form.
-
-# Exclude this endpoint from /docs because it serves an HTML
-# page for users, not an API operation intended for API consumers.
-@router.get("/add-book", include_in_schema=False)
-def add_book(request: Request):
-
-    # Convert index.html into an HTML page and send it to the browser.
-    return templates.TemplateResponse(
-
-        # Pass the incoming HTTP request because Jinja2Templates
-        # needs it to generate the HTML page.
-        request=request,
-
-        # Specify the HTML file that should be used for the page.
         name="index.html",
-
-        # Pass data from Python to the HTML file.
-        # An empty dictionary {} means no additional data is needed.
-        context={}
-    )
-
-
-@router.get("/update-book", include_in_schema=False)
-def update_book(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="patch.html",
-        context={}
+        context={"books": all_books}
     )

@@ -3,29 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta
-        name="description"
-        content="Add books to your personal book collection."
-    >
-
-    <title>Book Library | Add a Book</title>
-
+    <meta name="description" content="View and update books in your collection.">
+    <title>Book Library | Your Books</title>
     <link
         rel="stylesheet"
         href="{{ url_for('static', path='/css/styles.css') }}"
     >
-
+    <script
+        src="{{ url_for('static', path='/js/books.js') }}?v=2"
+        defer
+    ></script>
     <script
         src="{{ url_for('static', path='/js/app.js') }}"
         defer
     ></script>
 </head>
-
 <body>
     <main class="page-container">
-        <section class="book-card" aria-labelledby="page-title">
-
+        <section class="book-card library-card" aria-labelledby="page-title">
             <div class="brand">
                 <span class="brand-icon" aria-hidden="true">B</span>
                 <span>Book Library</span>
@@ -33,67 +28,131 @@
 
             <header class="card-header">
                 <p class="eyebrow">YOUR PERSONAL COLLECTION</p>
-
-                <h1 id="page-title">Add a new book</h1>
-
-                <p class="subtitle">
-                    Keep track of the books you want to read
-                    or have already discovered.
-                </p>
+                <h1 id="page-title">Your books</h1>
+                <p class="subtitle">Select a book to choose how to update it.</p>
             </header>
 
-            <!-- id="book-form" gives the form a unique identifier. -->
-            <form id="book-form">
+            <p id="book-count" class="library-status" data-count="{{ books|length }}" role="status" aria-live="polite">
+                {% if books|length == 0 %}
+                    There are no books in your collection yet.
+                {% elif books|length == 1 %}
+                    1 book in your collection.
+                {% else %}
+                    {{ books|length }} books in your collection.
+                {% endif %}
+            </p>
 
-                <div class="form-group">
-                    <label for="title">Book title</label>
-
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        placeholder="e.g. The Great Gatsby"
-                        maxlength="200"
-                        autocomplete="off"
-                        required
+            <ul id="book-list" class="book-list" aria-label="Books">
+                {% for book in books %}
+                <li class="book-item">
+                    <button
+                        type="button"
+                        class="book-list-item"
+                        data-book-id="{{ book.id }}"
+                        data-title="{{ book.title }}"
+                        data-author="{{ book.author }}"
                     >
-                </div>
+                        <span class="book-list-title">{{ book.title }}</span>
+                        <span class="book-list-author">{{ book.author }}</span>
+                    </button>
 
-                <div class="form-group">
-                    <label for="author">Author</label>
+                    <div class="book-actions" hidden>
+                        <button type="button" data-action="put">
+                            Replace Book <span>(PUT request)</span>
+                        </button>
+                        <button type="button" data-action="patch">
+                            Update One Field <span>(PATCH request)</span>
+                        </button>
+                        <button type="button" data-action="delete">
+                            Delete Book <span>(DELETE request)</span>
+                        </button>
+                    </div>
+                </li>
+                {% else %}
+                <li id="empty-books-message">There are no books in your collection yet.</li>
+                {% endfor %}
+            </ul>
 
-                    <input
-                        type="text"
-                        id="author"
-                        name="author"
-                        placeholder="e.g. F. Scott Fitzgerald"
-                        maxlength="120"
-                        autocomplete="off"
-                        required
-                    >
-                </div>
+            <section id="replace-panel" class="book-details" hidden>
+                <h2>Replace Book <span>(PUT request)</span></h2>
+                <p id="put-selected-book" class="subtitle"></p>
+                <form id="replace-book-form">
+                    <div class="form-group">
+                        <label for="replace-title">Book title</label>
+                        <input id="replace-title" type="text" maxlength="200" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="replace-author">Author(s)</label>
+                        <input id="replace-author" type="text" maxlength="120" required>
+                    </div>
+                    <button type="submit">Send PUT request</button>
+                </form>
+            </section>
 
-                <button type="submit" id="submit-button">
-                    <span id="button-text">Add book</span>
-                    <span id="button-spinner" class="spinner"
-                          hidden aria-hidden="true"></span>
-                </button>
+            <section id="patch-panel" class="book-details" hidden>
+                <h2>Update One Field <span>(PATCH request)</span></h2>
+                <p id="patch-selected-book" class="subtitle"></p>
+                <form id="patch-book-form">
+                    <div class="form-group">
+                        <label for="patch-field">Field to update</label>
+                        <select id="patch-field" required>
+                            <option value="title">Title</option>
+                            <option value="author">Author(s)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="patch-value-label" for="patch-value">New title</label>
+                        <input id="patch-value" type="text" maxlength="200" required>
+                    </div>
+                    <button type="submit">Send PATCH request</button>
+                </form>
+            </section>
 
-            </form>
+            <p id="update-status" class="library-status" role="status" aria-live="polite"></p>
 
-            <div
-                id="feedback"
-                class="feedback"
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-                hidden
-            ></div>
+            <section class="book-details" aria-labelledby="add-book-heading">
+                <h2 id="add-book-heading">Add a book <span>(POST request)</span></h2>
+                <form id="book-form">
+                    <div class="form-group">
+                        <label for="title">Book title</label>
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            maxlength="200"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="author">Author(s)</label>
+                        <input
+                            type="text"
+                            id="author"
+                            name="author"
+                            maxlength="120"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+                    <button type="submit" id="submit-button">
+                        <span id="button-text">Add book</span>
+                        <span id="button-spinner" class="spinner" hidden aria-hidden="true"></span>
+                    </button>
+                </form>
+                <div
+                    id="feedback"
+                    class="feedback"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    hidden
+                ></div>
+            </section>
 
             <footer class="card-footer">
                 Powered by FastAPI
             </footer>
-
         </section>
     </main>
 </body>

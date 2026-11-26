@@ -7,6 +7,8 @@ const buttonText = document.getElementById("button-text");
 const buttonSpinner = document.getElementById("button-spinner");
 
 const feedback = document.getElementById("feedback");
+const bookList = document.getElementById("book-list");
+const bookCount = document.getElementById("book-count");
 
 // This file is where the frontend communicates with the backend.
 
@@ -42,6 +44,58 @@ function getErrorMessage(data) {
     }
 
     return "Something went wrong. Please try again.";
+}
+
+function addBookToList(book) {
+    document.getElementById("empty-books-message")?.remove();
+
+    const item = document.createElement("li");
+    item.className = "book-item";
+
+    const bookButton = document.createElement("button");
+    bookButton.type = "button";
+    bookButton.className = "book-list-item";
+    bookButton.dataset.bookId = book.id;
+    bookButton.dataset.title = book.title;
+    bookButton.dataset.author = book.author;
+
+    const title = document.createElement("span");
+    title.className = "book-list-title";
+    title.textContent = book.title;
+
+    const author = document.createElement("span");
+    author.className = "book-list-author";
+    author.textContent = book.author;
+
+    bookButton.append(title, author);
+
+    const actions = document.createElement("div");
+    actions.className = "book-actions";
+    actions.hidden = true;
+
+    const putButton = document.createElement("button");
+    putButton.type = "button";
+    putButton.dataset.action = "put";
+    putButton.textContent = "Replace Book (PUT request)";
+
+    const patchButton = document.createElement("button");
+    patchButton.type = "button";
+    patchButton.dataset.action = "patch";
+    patchButton.textContent = "Update One Field (PATCH request)";
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "delete-book-button";
+    deleteButton.dataset.action = "delete";
+    deleteButton.textContent = "Delete Book (DELETE request)";
+
+    actions.append(putButton, patchButton, deleteButton);
+    item.append(bookButton, actions);
+    bookList.append(item);
+
+    const newCount = Number(bookCount.dataset.count) + 1;
+    bookCount.dataset.count = newCount;
+    bookCount.textContent = `${newCount} book${newCount === 1 ? "" : "s"} in your collection.`;
 }
 
 // addEventListener() allows us to listen for an event that happens
@@ -127,6 +181,8 @@ bookForm.addEventListener("submit", async (event) => {
                 "The server returned an unexpected response."
             );
         }
+
+        addBookToList(data);
 
         showFeedback(
             `Successfully added "${data.title}" by ${data.author}. Book ID: ${data.id}.`,

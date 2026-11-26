@@ -57,28 +57,6 @@ def create_book(book: BookCreate):
         "author": book.author
     }
 
-@router.get("/get-all-books")
-def get_all_books():
-    # Establish a database connection.
-    connection = get_connection()
-
-    # Execute the SQL query and get back a sqlite3.Cursor object
-    # containing the results.
-    cursor = connection.execute("SELECT * FROM books")
-
-    # Retrieve all rows from the sqlite3.Cursor object and store
-    # them in a list.
-    books = cursor.fetchall()
-
-    # Close the database connection.
-    connection.close()
-
-    books_list = []
-
-    for book in books:
-        books_list.append(dict(book))
-
-    return books_list
 
 # How the Client and Server Update a Book
 # 1. The client sends a PUT request
@@ -168,10 +146,30 @@ def update_book(book_id: int, book: BookPatch):
         raise HTTPException(status_code=404, detail="Book not found")
 
     connection.commit()
+
     updated_book = connection.execute(
         "SELECT id, title, author FROM books WHERE id = ?",
         (book_id,)
     ).fetchone()
+
     connection.close()
 
     return dict(updated_book)
+
+
+@router.delete("/delete-book/{book_id}")
+def delete_book(book_id: int):
+    connection = get_connection()
+    cursor = connection.execute(
+        "DELETE FROM books WHERE id = ?",
+        (book_id,)
+    )
+
+    if cursor.rowcount == 0:
+        connection.close()
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    connection.commit()
+    connection.close()
+
+    return {"id": book_id, "message": "Book deleted successfully"}
