@@ -83,13 +83,7 @@ function addBookToList(book) {
     patchButton.dataset.action = "patch";
     patchButton.textContent = "Update One Field (PATCH request)";
 
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.className = "delete-book-button";
-    deleteButton.dataset.action = "delete";
-    deleteButton.textContent = "Delete Book (DELETE request)";
-
-    actions.append(putButton, patchButton, deleteButton);
+    actions.append(putButton, patchButton);
     item.append(bookButton, actions);
     bookList.append(item);
 

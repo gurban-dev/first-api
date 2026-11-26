@@ -39,6 +39,20 @@ The **Delete Book** action is in the same book item:
 </button>
 ```
 
+When JavaScript creates a new book after a POST request, it must also add the same action button. In `static/js/app.js`, the relevant code is:
+
+```javascript
+const deleteButton = document.createElement("button");
+deleteButton.type = "button";
+deleteButton.className = "delete-book-button";
+deleteButton.dataset.action = "delete";
+deleteButton.textContent = "Delete Book (DELETE request)";
+
+actions.append(putButton, patchButton, deleteButton);
+```
+
+The class is only used for its visual styling. The `data-action` value lets the click handler distinguish this button from the PUT and PATCH buttons.
+
 The book ID is important: titles and authors can repeat, but the database ID identifies one particular row. Clicking a book first reveals its actions and stores its ID in `selectedBook` in `static/js/books.js`.
 
 ## 2. JavaScript handles the click
@@ -82,6 +96,15 @@ const endpoint = method === "PUT"
 
 const options = { method };
 const response = await fetch(`/${endpoint}/${selectedBook.id}`, options);
+const data = await response.json();
+```
+
+The complete DELETE-specific part of this request builder can also be written directly, which may be easier to understand in a first exercise:
+
+```javascript
+const response = await fetch(`/delete-book/${selectedBook.id}`, {
+    method: "DELETE"
+});
 const data = await response.json();
 ```
 
@@ -131,6 +154,27 @@ connection.close()
 return {"id": book_id, "message": "Book deleted successfully"}
 ```
 
+Here is the complete endpoint for a student to study and then recreate:
+
+```python
+@router.delete("/delete-book/{book_id}")
+def delete_book(book_id: int):
+    connection = get_connection()
+    cursor = connection.execute(
+        "DELETE FROM books WHERE id = ?",
+        (book_id,)
+    )
+
+    if cursor.rowcount == 0:
+        connection.close()
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    connection.commit()
+    connection.close()
+
+    return {"id": book_id, "message": "Book deleted successfully"}
+```
+
 For a successful deletion, FastAPI serializes the returned dictionary as a JSON response with status `200 OK`:
 
 ```json
@@ -160,6 +204,44 @@ if (!response.ok) {
 ```
 
 For success, the DELETE branch removes the matching book item from the page, reduces the displayed count, and shows an empty-state message if no books remain. It also clears the selected book and reports success. The database change happens on the server; removing the list item updates the current page without requiring a full reload.
+
+The UI update happens only after the server responds successfully. The essential code is:
+
+```javascript
+if (method === "DELETE") {
+    bookButton.closest(".book-item").remove();
+
+    const bookCount = document.getElementById("book-count");
+    const newCount = Number(bookCount.dataset.count) - 1;
+    bookCount.dataset.count = newCount;
+    bookCount.textContent = newCount === 0
+        ? "There are no books in your collection yet."
+        : `${newCount} book${newCount === 1 ? "" : "s"} in your collection.`;
+
+    if (newCount === 0) {
+        const emptyMessage = document.createElement("li");
+        emptyMessage.id = "empty-books-message";
+        emptyMessage.textContent = "There are no books in your collection yet.";
+        bookList.append(emptyMessage);
+    }
+
+    selectedBook = null;
+    hideEditPanels();
+    updateStatus.textContent = "Book deleted successfully.";
+}
+```
+
+The red button style in `static/css/styles.css` is optional; it does not perform the deletion:
+
+```css
+.delete-book-button {
+    background: #b42318;
+}
+
+.delete-book-button:hover:not(:disabled) {
+    background: #912018;
+}
+```
 
 ## 30-minute lesson plan
 

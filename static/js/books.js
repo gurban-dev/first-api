@@ -45,6 +45,10 @@ bookList.addEventListener("click", (event) => {
         return;
     }
 
+    if (actionButton.dataset.action !== "put" && actionButton.dataset.action !== "patch") {
+        return;
+    }
+
     hideEditPanels();
 
     if (actionButton.dataset.action === "put") {
@@ -59,8 +63,6 @@ bookList.addEventListener("click", (event) => {
         patchField.value = "title";
         updatePatchField();
         patchPanel.hidden = false;
-    } else {
-        sendUpdate("DELETE", null);
     }
 });
 function updatePatchField() {
@@ -81,11 +83,7 @@ async function sendUpdate(method, body) {
         return;
     }
 
-    const endpoint = method === "PUT"
-        ? "replace-book"
-        : method === "PATCH"
-            ? "update-book"
-            : "delete-book";
+    const endpoint = method === "PUT" ? "replace-book" : "update-book";
 
     try {
         const options = { method };
@@ -107,28 +105,6 @@ async function sendUpdate(method, body) {
         const bookButton = document.querySelector(
             `button[data-book-id="${selectedBook.id}"]`
         );
-
-        if (method === "DELETE") {
-            bookButton.closest(".book-item").remove();
-            const bookCount = document.getElementById("book-count");
-            const newCount = Number(bookCount.dataset.count) - 1;
-            bookCount.dataset.count = newCount;
-            bookCount.textContent = newCount === 0
-                ? "There are no books in your collection yet."
-                : `${newCount} book${newCount === 1 ? "" : "s"} in your collection.`;
-
-            if (newCount === 0) {
-                const emptyMessage = document.createElement("li");
-                emptyMessage.id = "empty-books-message";
-                emptyMessage.textContent = "There are no books in your collection yet.";
-                bookList.append(emptyMessage);
-            }
-
-            selectedBook = null;
-            hideEditPanels();
-            updateStatus.textContent = "Book deleted successfully.";
-            return;
-        }
 
         selectedBook = data;
         bookButton.dataset.title = data.title;

@@ -155,21 +155,3 @@ def update_book(book_id: int, book: BookPatch):
     connection.close()
 
     return dict(updated_book)
-
-
-@router.delete("/delete-book/{book_id}")
-def delete_book(book_id: int):
-    connection = get_connection()
-    cursor = connection.execute(
-        "DELETE FROM books WHERE id = ?",
-        (book_id,)
-    )
-
-    if cursor.rowcount == 0:
-        connection.close()
-        raise HTTPException(status_code=404, detail="Book not found")
-
-    connection.commit()
-    connection.close()
-
-    return {"id": book_id, "message": "Book deleted successfully"}

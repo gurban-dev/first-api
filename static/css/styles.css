@@ -233,14 +233,6 @@ button:disabled {
     font-weight: 400;
 }
 
-.delete-book-button {
-    background: #b42318;
-}
-
-.delete-book-button:hover:not(:disabled) {
-    background: #912018;
-}
-
 .book-list-item {
     height: auto;
     display: flex;
